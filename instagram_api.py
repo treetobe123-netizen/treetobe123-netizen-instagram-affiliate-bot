@@ -81,6 +81,16 @@ def post_video(env, caption, video_url, is_reel=True):
     return publish_container(env, container_id)
 
 
+def post_comment(env, media_id, message):
+    """投稿にコメントを追加し、コメントIDを返す"""
+    data = {
+        "message": message,
+        "access_token": env["IG_ACCESS_TOKEN"],
+    }
+    result = _post(f"{BASE}/{media_id}/comments", data)
+    return result["id"]
+
+
 if __name__ == "__main__":
     import sys
     sys.stdout.reconfigure(encoding="utf-8")

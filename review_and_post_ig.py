@@ -43,6 +43,7 @@ def main():
     parser.add_argument("--file", help="生成済みファイルをそのまま使う場合のパス")
     parser.add_argument("--caption", required=True, help="投稿キャプション")
     parser.add_argument("--video", action="store_true", help="動画/リールとして投稿する")
+    parser.add_argument("--duration", type=int, default=5, help="動画の長さ(秒、2〜20)")
     parser.add_argument("--product", action="store_true", help="商品紹介の投稿([PR]表記とプロフィールリンク誘導を自動で付ける)")
     args = parser.parse_args()
 
@@ -52,8 +53,8 @@ def main():
         media_path = args.file
     elif args.prompt:
         if args.video:
-            print("動画生成中(LTX-2.5)... 数分かかります")
-            media_path = generate_video_ltx(args.prompt)[0]
+            print(f"動画生成中(LTX-2.5, {args.duration}秒)... 数分かかります")
+            media_path = generate_video_ltx(args.prompt, duration=args.duration)[0]
         else:
             media_path = generate_image_forge(args.prompt)[0]
     else:
