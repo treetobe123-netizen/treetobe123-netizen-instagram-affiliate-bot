@@ -28,6 +28,7 @@ jobs:
           RAKUTEN_APPLICATION_ID: ${{ secrets.RAKUTEN_APPLICATION_ID }}
           RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
           RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          GITHUB_PAGES_URL: https://treetobe123-netizen.github.io/threads-hub/
         run: |
           mkdir -p queue
           python pick_product.py > queue/today_item.json
