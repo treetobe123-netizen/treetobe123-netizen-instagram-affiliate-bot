@@ -28,6 +28,8 @@ jobs:
           RAKUTEN_APPLICATION_ID: ${{ secrets.RAKUTEN_APPLICATION_ID }}
           RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
           RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_PROXY_URL: ${{ secrets.RAKUTEN_PROXY_URL }}
+          RAKUTEN_PROXY_SECRET: ${{ secrets.RAKUTEN_PROXY_SECRET }}
           GITHUB_PAGES_URL: https://treetobe123-netizen.github.io/threads-hub/
         run: |
           mkdir -p queue
