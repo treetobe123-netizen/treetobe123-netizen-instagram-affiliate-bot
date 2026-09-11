@@ -8,7 +8,12 @@ import os
 REQUIRED_KEYS = [
     "IG_ACCESS_TOKEN",
     "IG_USER_ID",
-    "GITHUB_PAGES_URL",
+    "RAKUTEN_APPLICATION_ID",
+    "RAKUTEN_AFFILIATE_ID",
+    "RAKUTEN_ACCESS_KEY",
+]
+OPTIONAL_KEYS = [
+    "GITHUB_PAGES_URL", "RAKUTEN_PROXY_URL", "RAKUTEN_PROXY_SECRET",
 ]
 
 def load_env(path=None):
@@ -19,7 +24,9 @@ def load_env(path=None):
         missing = [k for k in REQUIRED_KEYS if k not in os.environ]
         if missing:
             raise RuntimeError(f".envが見つからず、環境変数にも不足があります: {missing}")
-        return {k: os.environ[k] for k in REQUIRED_KEYS}
+        env = {k: os.environ[k] for k in REQUIRED_KEYS}
+        env.update({k: os.environ[k] for k in OPTIONAL_KEYS if k in os.environ})
+        return env
 
     env = {}
     with open(path, encoding="utf-8") as f:
