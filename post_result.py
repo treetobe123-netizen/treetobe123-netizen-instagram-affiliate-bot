@@ -70,6 +70,11 @@ def main():
     if item:
         record["item"] = item
 
+    item_url = (item or {}).get("url")
+    if item_url:
+        # 長いアフィリエイトURLはAIに書き写させず、ここで機械的に正確な値を付与する
+        comment = f"{comment}\n{item_url}" if comment else item_url
+
     if comment:
         comment_id = post_comment(env, post_id, comment)
         record["comment"] = comment

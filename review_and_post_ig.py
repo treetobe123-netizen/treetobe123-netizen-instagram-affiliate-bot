@@ -25,7 +25,7 @@ from instagram_api import post_image, post_video
 
 LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "log.jsonl")
 
-PRODUCT_DISCLOSURE = "\n\n気になった方はプロフィールのリンクから見てみてね\n[PR]"
+PRODUCT_DISCLOSURE = "\n\n気になった方はコメント欄のリンクをチェックしてみてね\n[PR]"
 
 
 def build_caption(text, is_product):

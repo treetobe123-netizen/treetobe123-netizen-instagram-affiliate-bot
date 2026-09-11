@@ -4,9 +4,10 @@
   python post_product.py --keyword "ベビー服 セール" --caption "本文"
   python post_product.py --keyword "抱っこ紐" --caption "本文" --video
 
-[PR]表記とプロフィールリンクへの誘導は自動で付く(review_and_post_ig.pyのbuild_captionを利用)。
-商品ページのURLは楽天ROOMへの掲載用にコンソールへ表示するだけで、投稿本文には含めない
-(Instagramはキャプション内のURLがクリックできないため)。
+[PR]表記と「コメント欄を見てね」の誘導は自動で付く(review_and_post_ig.pyのbuild_captionを利用)。
+実際の商品URLは投稿本文には含めず、post_result.pyがコメント欄に機械的に付与する想定
+(Instagramはキャプション・コメントどちらもURLをクリックできる形にしないため、
+プロフィールのリンクではなくコメント欄のURLを直接コピーしてもらう導線にしている)。
 """
 import argparse
 import sys
@@ -83,7 +84,6 @@ def main():
         "post_id": post_id,
     })
     print(f"投稿成功: post_id={post_id}")
-    print(f"忘れずに楽天ROOMにもこの商品を追加してください: {item['url']}")
 
 
 if __name__ == "__main__":
