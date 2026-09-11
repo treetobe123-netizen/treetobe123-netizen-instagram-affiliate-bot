@@ -1,0 +1,46 @@
+name: Post Instagram From Queue
+
+on:
+  push:
+    paths:
+      - "queue/ready_to_post.json"
+  workflow_dispatch: {}
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Post to Instagram from queue
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          RAKUTEN_APPLICATION_ID: ${{ secrets.RAKUTEN_APPLICATION_ID }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+        run: |
+          if [ ! -f queue/ready_to_post.json ]; then
+            echo "queue/ready_to_post.json が無いので何もしません（既に処理済みの可能性）"
+            exit 0
+          fi
+          python post_result.py --from-queue queue/ready_to_post.json
+
+      - name: Commit log update and queue cleanup
+        run: |
+          git config --global user.email "bot@instagram-affiliate-bot.local"
+          git config --global user.name "instagram-affiliate-bot"
+          git add log.jsonl
+          git add -A queue/
+          git diff --cached --quiet || git commit -m "log update + queue cleared $(date -u +%Y-%m-%d) [skip ci]"
+          git push

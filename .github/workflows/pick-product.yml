@@ -1,0 +1,42 @@
+name: Pick Daily Product
+
+on:
+  schedule:
+    - cron: "6 3 * * *"  # 12:06 JST
+  workflow_dispatch: {}
+
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Pick today's product
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          RAKUTEN_APPLICATION_ID: ${{ secrets.RAKUTEN_APPLICATION_ID }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+        run: |
+          mkdir -p queue
+          python pick_product.py > queue/today_item.json
+          cat queue/today_item.json
+
+      - name: Commit and push
+        run: |
+          git config --global user.email "bot@instagram-affiliate-bot.local"
+          git config --global user.name "instagram-affiliate-bot"
+          git add queue/today_item.json
+          git diff --cached --quiet || git commit -m "queue: today's product $(date -u +%Y-%m-%d)"
+          git push
