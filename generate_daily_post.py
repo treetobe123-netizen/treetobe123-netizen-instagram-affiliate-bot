@@ -4,7 +4,10 @@ HiggsField(有料プラン必須になったため)の代わりに、ローカ�
 画像生成する。GitHub Actions側の「商品選定(pick-product.yml)」「投稿(post-to-instagram.yml)」
 の2ステップはそのまま流用し、真ん中のHiggsFieldクラウドルーティンだけをこのスクリプトに置き換える。
 
-前提: Forgeが http://127.0.0.1:7860 で --api 付きで起動していること
+Forgeが起動していなければ自動で起動を試みる(StabilityMatrix管理下の
+D:\Data\Packages\Stable Diffusion WebUI Forge を想定)。タスクスケジューラでの
+無人実行では、誰かがForgeを手動で開き忘れていると失敗し続けるため、
+この自動起動が要になる(2026-09-21、TikTok側の同種の障害を踏まえて追加)。
 
 使い方:
   python generate_daily_post.py
@@ -14,6 +17,9 @@ import json
 import os
 import subprocess
 import sys
+import time
+import urllib.request
+import urllib.error
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -25,6 +31,42 @@ from caption_templates import build_template_caption, build_template_comment
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 QUEUE_TODAY = os.path.join(BASE_DIR, "queue", "today_item.json")
 QUEUE_READY = os.path.join(BASE_DIR, "queue", "ready_to_post.json")
+
+FORGE_URL = "http://127.0.0.1:7860"
+FORGE_DIR = r"D:\Data\Packages\Stable Diffusion WebUI Forge"
+
+
+def _forge_alive():
+    try:
+        urllib.request.urlopen(f"{FORGE_URL}/sdapi/v1/sd-models", timeout=3)
+        return True
+    except (urllib.error.URLError, OSError):
+        return False
+
+
+def ensure_forge_running(timeout=240):
+    if _forge_alive():
+        print("Forge: 起動済み")
+        return
+    print("Forge: 未起動のため自動起動します...")
+    python_exe = os.path.join(FORGE_DIR, "venv", "Scripts", "python.exe")
+    log_path = os.path.join(BASE_DIR, "forge_startup.log")
+    with open(log_path, "a", encoding="utf-8") as log_file:
+        subprocess.Popen(
+            [python_exe, "launch.py", "--api", "--nowebui"],
+            cwd=FORGE_DIR,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+    waited = 0
+    while waited < timeout:
+        if _forge_alive():
+            print(f"Forge: 起動確認できました({waited}秒待機)")
+            return
+        time.sleep(5)
+        waited += 5
+    raise RuntimeError(f"Forgeが{timeout}秒待っても起動しませんでした。forge_startup.logを確認してください")
 
 
 def build_prompt(item):
@@ -61,6 +103,8 @@ def main():
     item = today["item"]
 
     env = load_env()
+
+    ensure_forge_running()
 
     print(f"画像生成中(Forge): {item['name'][:40]}...")
     prompt = build_prompt(item)
