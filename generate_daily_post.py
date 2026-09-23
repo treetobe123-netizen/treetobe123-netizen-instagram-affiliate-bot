@@ -84,7 +84,12 @@ def git_push_with_retry(max_retries=5):
     """他の自動投稿(post-to-instagram.yml側のlog.jsonlコミット等)との競合に備え、
     pull --rebase→push をリトライする"""
     for attempt in range(max_retries):
-        subprocess.run(["git", "pull", "--rebase"], cwd=BASE_DIR, check=True)
+        pull = subprocess.run(["git", "pull", "--rebase"], cwd=BASE_DIR)
+        if pull.returncode != 0:
+            # pull --rebase自体が失敗した場合(本当のコンフリクト等)。abortして次のリトライに賭ける
+            # (Codexレビューで指摘: check=Trueのままだとここで例外終了していた)
+            subprocess.run(["git", "rebase", "--abort"], cwd=BASE_DIR)
+            continue
         result = subprocess.run(["git", "push"], cwd=BASE_DIR)
         if result.returncode == 0:
             return

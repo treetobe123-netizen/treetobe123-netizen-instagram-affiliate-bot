@@ -29,7 +29,12 @@ def publish_to_github_pages(env, local_file_path, wait_seconds=60, max_retries=5
     if diff.returncode != 0:
         subprocess.run(["git", "commit", "-m", f"add media {filename}"], cwd=REPO_DIR, check=True)
         for attempt in range(max_retries):
-            subprocess.run(["git", "pull", "--rebase"], cwd=REPO_DIR, check=True)
+            pull = subprocess.run(["git", "pull", "--rebase"], cwd=REPO_DIR)
+            if pull.returncode != 0:
+                # pull --rebase自体が失敗した場合(本当のコンフリクト等)。abortして次のリトライに賭ける
+                # (Codexレビューで指摘: check=Trueのままだとここで例外終了していた)
+                subprocess.run(["git", "rebase", "--abort"], cwd=REPO_DIR)
+                continue
             result = subprocess.run(["git", "push"], cwd=REPO_DIR)
             if result.returncode == 0:
                 break
